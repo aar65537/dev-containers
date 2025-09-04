@@ -1,0 +1,18 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+add_newline = false
+
+[container]
+symbol = "📦"
+# style = "bold blue dimmed"
+format="[$symbol]($style) "
+
+
+[directory]
+fish_style_pwd_dir_length = 3
+truncation_length = 1
+
+[gcloud]
+detect_env_vars = ["GCLOUD_PROJECT"]
+
+[username]
+show_always = true

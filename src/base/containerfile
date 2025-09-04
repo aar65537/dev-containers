@@ -1,0 +1,48 @@
+# Builder image
+ARG VARIANT="bookworm"
+FROM mcr.microsoft.com/devcontainers/base:${VARIANT} AS Builder
+
+# Install rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Install shell utilities
+RUN /root/.cargo/bin/cargo install --locked atuin eza starship zellij zoxide
+
+# Build helix
+RUN git clone https://github.com/helix-editor/helix.git /root/helix
+WORKDIR /root/helix
+ENV HELIX_DEFAULT_RUNTIME /usr/share/helix/runtime
+RUN /root/.cargo/bin/cargo install --profile opt --config 'build.rustflags="-C target-cpu=native"' --path helix-term --locked
+
+# Devcontainer image
+FROM mcr.microsoft.com/devcontainers/base:${VARIANT}
+
+# Set LANG environment variable
+ENV LANG en_US.UTF-8
+
+# Set zsh as default shell
+RUN chsh -s /usr/bin/zsh vscode
+
+# Install shell utilities
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends bat fzf ugrep \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=Builder \
+    /root/.cargo/bin/atuin \
+    /root/.cargo/bin/eza \
+    /root/.cargo/bin/hx \
+    /root/.cargo/bin/starship \
+    /root/.cargo/bin/zellij \
+    /root/.cargo/bin/zoxide \
+    /usr/bin/
+COPY --from=Builder /root/helix/runtime/ /usr/share/helix/runtime/
+
+# Swtich to vscode user
+USER vscode
+
+# Install shell plugins
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions /home/vscode/.oh-my-zsh/custom/plugins/zsh-autosuggestions \
+    && git clone https://github.com/zsh-users/zsh-syntax-highlighting /home/vscode/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+
+# Copy config files
+COPY --chown=vscode:vscode home/ /home/vscode/

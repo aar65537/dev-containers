@@ -1,0 +1,16 @@
+theme = "base16_transparent"
+
+[editor.file-picker]
+# git-ignore = false
+hidden = false
+
+[keys.normal.space]
+x = ":wbc"
+v = ":w"
+q = ":bc!"
+i = "indent"
+o = "unindent"
+
+[keys.insert.j]
+j = "normal_mode"
+k = "normal_mode"

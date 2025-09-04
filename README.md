@@ -1,2 +1,2 @@
-# dev-containers
+# Development Containers
 Repository containing useful devcontainers
