@@ -25,6 +25,9 @@ jobs:
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
+    strategy:
+      matrix:
+        variant: ["bookworm", "bullseye"]
 
     steps:
       - name: Checkout repository
@@ -61,6 +64,14 @@ jobs:
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/base
+          flavor: suffix=${{ matrix.variant }},onlatest=true
+          tags: |
+            type=raw,value=${{ matrix.variant }},suffix=''
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=schedule,pattern={{date 'YYYYMMDD'}}
+            type=sha
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -69,7 +80,8 @@ jobs:
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: src/base
-          file: 'src/base/containerfile'
+          file: src/base/containerfile
+          build-args: VARIANT=${{ matrix.variant }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
