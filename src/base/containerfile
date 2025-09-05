@@ -1,13 +1,15 @@
-# Builder image
 ARG VARIANT="bookworm"
-FROM mcr.microsoft.com/devcontainers/base:${VARIANT} AS Builder
 
+# Builder base image
+FROM mcr.microsoft.com/devcontainers/base:${VARIANT} AS BuilderBase
 # Install rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
+FROM BuilderBase AS BUILDER
 # Install shell utilities
 RUN /root/.cargo/bin/cargo install --locked atuin eza starship zellij zoxide
 
+FROM BuilderBase AS BuilderHelix
 # Build helix
 RUN git clone https://github.com/helix-editor/helix.git /root/helix
 WORKDIR /root/helix
@@ -30,12 +32,12 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 COPY --from=Builder \
     /root/.cargo/bin/atuin \
     /root/.cargo/bin/eza \
-    /root/.cargo/bin/hx \
     /root/.cargo/bin/starship \
     /root/.cargo/bin/zellij \
     /root/.cargo/bin/zoxide \
     /usr/bin/
-COPY --from=Builder /root/helix/runtime/ /usr/share/helix/runtime/
+COPY --from=BuilderHelix /root/.cargo/bin/hx /usr/bin/
+COPY --from=BuilderHelix /root/helix/runtime/ /usr/share/helix/runtime/
 
 # Swtich to vscode user
 USER vscode
