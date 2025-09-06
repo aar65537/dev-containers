@@ -22,9 +22,6 @@ FROM mcr.microsoft.com/devcontainers/base:${VARIANT}
 # Set LANG environment variable
 ENV LANG en_US.UTF-8
 
-# Make /tmp writable by anyone
-RUN chown 777 /tmp
-
 # Set zsh as default shell
 RUN chsh -s /usr/bin/zsh vscode
 
