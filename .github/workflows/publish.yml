@@ -26,7 +26,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        variant: ["bookworm", "bullseye"]
+        variant: ["trixie", "bookworm", "bullseye"]
 
     steps:
       - name: Checkout repository
